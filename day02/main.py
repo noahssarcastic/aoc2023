@@ -1,16 +1,14 @@
 import re
-
-
-MAX_RED_CUBES = 12
-MAX_GREEN_CUBES = 13
-MAX_BLUE_CUBES = 14
+from typing import Self
 
 
 class CubeSet:
-    def __init__(self, set_string: str) -> None:
+    def __init__(self) -> None:
         self.red = 0
         self.green = 0
         self.blue = 0
+
+    def load_set_string(self, set_string: str) -> Self:
         for color_str in [x.strip() for x in set_string.split(",")]:
             re_match = re.search(r"(\d+) (\w+)", color_str)
             if re_match is None:
@@ -23,6 +21,7 @@ class CubeSet:
                     self.green = num
                 case "blue":
                     self.blue = num
+        return self
 
     def power(self) -> int:
         return self.red * self.blue * self.green
@@ -40,14 +39,13 @@ def main():
             if re_match is None:
                 raise RuntimeError(f"game id not in expected format: {game_id}")
             game_id = int(re_match.group(1))
-            sets = [CubeSet(x.strip()) for x in sets.split(";")]
-            if all(
-                x.red <= MAX_RED_CUBES
-                and x.green <= MAX_GREEN_CUBES
-                and x.blue <= MAX_BLUE_CUBES
-                for x in sets
-            ):
-                total += game_id
+            sets = [CubeSet().load_set_string(x.strip()) for x in sets.split(";")]
+            min_set = CubeSet()
+            for s in sets:
+                min_set.red = max(s.red, min_set.red)
+                min_set.green = max(s.green, min_set.green)
+                min_set.blue = max(s.blue, min_set.blue)
+            total += min_set.power()
         print(total)
 
 
